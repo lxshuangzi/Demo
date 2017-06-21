@@ -1,5 +1,5 @@
-package stu.liuxiang.hm;
 
+package stu.liuxiang.hm;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,8 +21,10 @@ public class HMTestDemo {
 	private String userName = "";
 	public static void main(String[] args){
 		HMTestDemo demo = new HMTestDemo();
-		File paper = demo.getAllPapers("F:\\°Ù¶ÈÔÆÍ¬²½ÅÌ\\WOW\\ÊÔ¾í\\")[0];
-		demo.processPaper(paper);
+		File[] papers = demo.getAllPapers("F:\\ç™¾åº¦äº‘åŒæ­¥ç›˜\\WOW\\è¯•å·\\");
+		for(File paper : papers){
+			demo.processPaper(paper);
+		}
 	}
 	private File[] getAllPapers(String filePath){
 		File fileDir = new File(filePath);
@@ -32,7 +34,7 @@ public class HMTestDemo {
 	private void processPaper(File paper){
 		List<String> answer = new ArrayList<String>();
 		userName = paper.getName();
-		System.out.println(paper.getName() + "ÅÜ·Ö¿ªÊ¼");
+		System.out.println(paper.getName() + "è·‘åˆ†å¼€å§‹");
 		try {
 			XSSFWorkbook workbook = new XSSFWorkbook(paper);
 			XSSFSheet sheet = workbook.getSheetAt(0);
@@ -67,6 +69,7 @@ public class HMTestDemo {
 	private int countScoreResult(List<String> question){
 		int totalCount = 0;
 		List<String> countScore = new ArrayList<String>();
+		List<String> wrongScore = new ArrayList<String>();
 		getCountScore(countScore);
 		System.out.println("question count:" + question.size());
 		System.out.println("answer   count:" + countScore.size());
@@ -74,29 +77,38 @@ public class HMTestDemo {
 			System.out.println("questions count is not equal with answer count");
 		}else{
 			for(int i = 0;i<question.size();i++){
-				if(question.get(i).equalsIgnoreCase(countScore.get(i))){
+				if(question.get(i).equalsIgnoreCase(countScore.get(i)) || question.get(i).equalsIgnoreCase("F")){
 					totalCount ++;
+				}else{
+					wrongScore.add(i +"=" + countScore.get(i));
 				}
 			}
 		}
-		System.out.println("ÕıÈ·ÌâÄ¿µÄÊıÁ¿Îª" + totalCount);
+		String wrongStr = "";
+		for(int i = 0 ; i<wrongScore.size();i++){
+			wrongStr += wrongStr + ","+ wrongScore.get(i);
+		}
+		System.out.println("æ­£ç¡®é¢˜ç›®çš„æ•°é‡ä¸º" + totalCount + "é”™è¯¯" + wrongStr);
+//		System.out.println("æ­£ç¡®é¢˜ç›®çš„æ•°é‡ä¸º" + totalCount);
 		if(totalCount >=70){
-			System.out.println(userName + "ÕæÊÇËûÂğ¸öÌì²Å");
+			System.out.println(userName + "çœŸæ˜¯ä»–å—ä¸ªå¤©æ‰");
 		}else if(totalCount<=60){
-			System.out.println(userName + "ÕæÊÇËûÂğ¸öÉµ±Æ");
+			System.out.println(userName + "å¦ˆçš„æ™ºéšœ");
 		}else{
-			System.out.println(userName + "Ò»°ã°ãÀ²");
+			System.out.println(userName + "ä¸€èˆ¬èˆ¬å•¦");
 		}
 		return 0;
 	}
 	
 	private void getCountScore(List<String> countScore){
+		//1-5
 		countScore.add("B");
 		countScore.add("C");
 		countScore.add("C");
 		countScore.add("D");
 		countScore.add("C");
 		
+		//6-10
 		countScore.add("D");
 		countScore.add("B");
 		countScore.add("D");
