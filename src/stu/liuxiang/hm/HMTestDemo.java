@@ -1,6 +1,10 @@
 
 package stu.liuxiang.hm;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,57 +26,98 @@ public class HMTestDemo {
 	public static void main(String[] args){
 		HMTestDemo demo = new HMTestDemo();
 		File[] papers = demo.getAllPapers("F:\\百度云同步盘\\WOW\\试卷\\");
-		for(File paper : papers){
-			demo.processPaper(paper);
-		}
-	}
-	private File[] getAllPapers(String filePath){
-		File fileDir = new File(filePath);
-		File[] papers = fileDir.listFiles();
-		return papers;
-	}
-	private void processPaper(File paper){
-		List<String> answer = new ArrayList<String>();
-		userName = paper.getName();
-		System.out.println(paper.getName() + "跑分开始");
+//		FileInputStream fis = null;
 		try {
-			XSSFWorkbook workbook = new XSSFWorkbook(paper);
-			XSSFSheet sheet = workbook.getSheetAt(0);
-			int rowNum = 94;
-			for(int i = 0;i < rowNum ; i++){
-				String answerStr = "";
-				if(sheet.getRow(i).getCell(6) != null){
-					answerStr = sheet.getRow(i).getCell(6).getStringCellValue();
-				}else{
-//					System.out.println("row"+i + "==null");
-				}
-//				System.out.println("row" + i + answerStr);
-				if(null != answerStr && !"".equals(answerStr)){
-					answer.add(sheet.getRow(i).getCell(6).getStringCellValue());
-				}
-				
+			File result = new File("F:\\百度云同步盘\\WOW\\成绩单.txt");
+			if(result.exists()){
+				result.delete();
+				result.createNewFile();
 			}
-			answer.remove(0);
-		} catch (EncryptedDocumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidFormatException e) {
+//			fis = new FileInputStream("F:\\百度云同步盘\\WOW\\成绩单.txt");
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		countScoreResult(answer);
+//		for(File paper : papers){
+		demo.processPaper(papers);
+//		}
+	}
+	private File[] getAllPapers(String filePath){
+		File fileDir = new File(filePath);
+		File[] papers = fileDir.listFiles();
+		return papers;
+	}
+	private void processPaper(File[] papers){
+		String resultStr = "";
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream("F:\\百度云同步盘\\WOW\\成绩单.txt");
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		};
+		for(File paper:papers){
+			List<String> answer = new ArrayList<String>();
+			userName = paper.getName();
+			System.out.println(paper.getName() + "跑分开始");
+			try {
+				XSSFWorkbook workbook = new XSSFWorkbook(paper);
+				XSSFSheet sheet = workbook.getSheetAt(0);
+				int rowNum = 94;
+				for(int i = 0;i < rowNum ; i++){
+					String answerStr = "";
+					if(sheet.getRow(i).getCell(6) != null){
+						answerStr = sheet.getRow(i).getCell(6).getStringCellValue();
+					}else{
+//						System.out.println("row"+i + "==null");
+					}
+//						System.out.println("row" + i + answerStr);
+					if(null != answerStr && !"".equals(answerStr)){
+						answer.add(sheet.getRow(i).getCell(6).getStringCellValue());
+					}
+					
+				}
+				answer.remove(0);
+			} catch (EncryptedDocumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			resultStr = countScoreResult(answer,paper.getName());
+			try {
+//				fos = new FileOutputStream("F:\\百度云同步盘\\WOW\\成绩单.txt");
+				fos.write(resultStr.getBytes());
+				fos.flush();
+				fos.write("\r\n".getBytes());
+				fos.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			};
+		}
+		try {
+			fos.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
-	private int countScoreResult(List<String> question){
+	private String countScoreResult(List<String> question,String paperName){
 		int totalCount = 0;
 		List<String> countScore = new ArrayList<String>();
 		List<String> wrongScore = new ArrayList<String>();
 		getCountScore(countScore);
-		System.out.println("question count:" + question.size());
-		System.out.println("answer   count:" + countScore.size());
+//		System.out.println("question count:" + question.size());
+//		System.out.println("answer   count:" + countScore.size());
 		if(question.size() != countScore.size()){
 			System.out.println("questions count is not equal with answer count");
 		}else{
@@ -80,24 +125,26 @@ public class HMTestDemo {
 				if(question.get(i).equalsIgnoreCase(countScore.get(i)) || question.get(i).equalsIgnoreCase("F")){
 					totalCount ++;
 				}else{
-					wrongScore.add(i +"=" + countScore.get(i));
+					wrongScore.add(i+1 +"=" + countScore.get(i));
 				}
 			}
 		}
 		String wrongStr = "";
 		for(int i = 0 ; i<wrongScore.size();i++){
-			wrongStr += wrongStr + ","+ wrongScore.get(i);
+			wrongStr = wrongStr + wrongScore.get(i) +",";
 		}
-		System.out.println("正确题目的数量为" + totalCount + "错误" + wrongStr);
-//		System.out.println("正确题目的数量为" + totalCount);
+//		System.out.println("正确题目的数量为" + totalCount + "错误" + wrongStr);
+		String dianpinStr = "";
 		if(totalCount >=70){
-			System.out.println(userName + "真是他吗个天才");
+			dianpinStr = ",真是他吗个天才";
 		}else if(totalCount<=60){
-			System.out.println(userName + "妈的智障");
+			dianpinStr = ",妈的智障";
 		}else{
-			System.out.println(userName + "一般般啦");
+			dianpinStr = ",一般般啦";
 		}
-		return 0;
+		String resultStr = paperName + "正确题目的数量为" + totalCount + dianpinStr + "\r\n" + "错误題目:" + wrongStr;
+		System.out.println("正确题目的数量为" + totalCount );
+		return resultStr;
 	}
 	
 	private void getCountScore(List<String> countScore){
@@ -159,7 +206,7 @@ public class HMTestDemo {
 		
 		//41-45
 		countScore.add("D");
-		countScore.add("A");
+		countScore.add("B");
 		countScore.add("A");
 		countScore.add("B");
 		countScore.add("C");
